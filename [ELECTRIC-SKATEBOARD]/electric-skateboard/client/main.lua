@@ -21,6 +21,8 @@ AddEventHandler('longboard:spawn', function()
 end)
 
 RCCar.Start = function()
+        player = GetPlayerPed(-1)
+
 	if DoesEntityExist(RCCar.Entity) then return end
 
 	RCCar.Spawn()
