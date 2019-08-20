@@ -1,5 +1,5 @@
 local RCCar = {}
-local player = GetPlayerPed(-1)
+local player = nil
 
 Attached = false
 
@@ -21,8 +21,7 @@ AddEventHandler('longboard:spawn', function()
 end)
 
 RCCar.Start = function()
-        player = GetPlayerPed(-1)
-
+	player = GetPlayerPed(-1)
 	if DoesEntityExist(RCCar.Entity) then return end
 
 	RCCar.Spawn()
@@ -61,10 +60,19 @@ RCCar.HandleKeys = function(distanceCheck)
 			end
 		end
 	end
-
+	
 	if distanceCheck < Config.LoseConnectionDistance then
 		if IsControlPressed(0, 172) and not IsControlPressed(0, 173) then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 9, 1)
+		end
+
+		if IsControlPressed(0, 22) and Attached then
+			local vel = GetEntityVelocity(RCCar.Entity)
+			if not IsEntityInAir(RCCar.Entity) then
+				SetEntityVelocity(RCCar.Entity, vel.x, vel.y, vel.z + 5.0)
+				Citizen.Wait(20)
+			end
+			
 		end
 		
 		if IsControlJustReleased(0, 172) or IsControlJustReleased(0, 173) then
@@ -125,6 +133,10 @@ RCCar.DrawInstructions = function(distanceCheck)
 		{
 			["label"] = "Left",
 			["button"] = "~INPUT_CELLPHONE_LEFT~"
+		},
+		{
+			["label"] = "Jump",
+			["button"] = "~INPUT_JUMP~"
 		}
 	}
 
@@ -335,4 +347,10 @@ function DrawText3Ds(x,y,z, text)
     DrawText(_x,_y)
     local factor = (string.len(text)) / 370
     DrawRect(_x,_y+0.0125, 0.015+ factor, 0.03, 41, 11, 41, 68)
+end
+
+function ShowSubtitle(text, ms)  
+    BeginTextCommandPrint("STRING") 
+    AddTextComponentSubstringPlayerName(text)
+    EndTextCommandPrint(ms, 1)
 end
