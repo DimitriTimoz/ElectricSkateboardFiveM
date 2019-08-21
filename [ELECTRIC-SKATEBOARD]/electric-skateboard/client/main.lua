@@ -1,5 +1,5 @@
 local RCCar = {}
-local player = nil
+local player = GetPlayerPed(-1)
 
 Attached = false
 
@@ -198,7 +198,7 @@ RCCar.DrawInstructions = function(distanceCheck)
 	        local x = GetEntityRotation(RCCar.Entity).x
 	        local y = GetEntityRotation(RCCar.Entity).y
 
-	        if (-40.0 < x and x > 40.0) or (-40.0 < y and y > 40.0) then
+	        if (-40.0 < x and x > 40.0) or (-40.0 < y and y > 40.0) or (HasEntityCollidedWithAnything(RCCar.Entity) and GetEntitySpeed(RCCar.Entity) > 2.6) then
 	        	RCCar.AttachPlayer(false)
 	        	SetPedToRagdoll(player, 4000, 4000, 0, true, true, false)
 			end	
