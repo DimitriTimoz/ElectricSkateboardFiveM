@@ -96,7 +96,6 @@ RCCar.HandleKeys = function(distanceCheck)
 				end
 				boost = Config.maxJumpHeigh * duration / 250.0
 				if boost > Config.maxJumpHeigh then boost = Config.maxJumpHeigh end
-				print(boost)
 				StopAnimTask(PlayerPedId(), "move_crouch_proto", "idle_intro", 1.0)
 				SetEntityVelocity(RCCar.Entity, vel.x, vel.y, vel.z + boost)
 				TaskPlayAnim(player, "move_strafe@stealth", "idle", 8.0, 2.0, -1, 1, 1.0, false, false, false)
