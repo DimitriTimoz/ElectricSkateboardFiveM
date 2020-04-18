@@ -4,9 +4,8 @@ Electric Skateboard is a script in develop who use a base of the scrip rd_cars.
 If you have a supposition of upgrade to add in the script contact me in fiveM forum, my pseudo: 'Super_Chocolatine'.
 
 How to install:
-1) Place the folder '[ELECTRIC-SKATEBOARD]'in your resources folder
-2) Go to “resources/[ELECTRIC-SKATEBOARD]/skate/” and create an empty ‘__resource.lua’.
-3) Add ‘start skate’ and ‘add electric-skateboard’ in your ‘server.cfg’
+1) Place the folder 'electric-skateboard'in your resources folder
+3) Add ‘start electric-skateboard’ in your ‘server.cfg’
 4) If you want add a menu config the triggers events
 5) Start your server
 
