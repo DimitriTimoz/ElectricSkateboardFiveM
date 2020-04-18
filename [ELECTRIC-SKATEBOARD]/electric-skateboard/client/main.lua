@@ -1,5 +1,5 @@
 local RCCar = {}
-local player = GetPlayerPed(-1)
+local player = nil
 
 Attached = false
 
@@ -9,14 +9,11 @@ end)
 
 
 AddEventHandler('longboard:clear', function()
-	DeleteEntity(RCCar.Skate)
-	DeleteVehicle(RCCar.Entity)
-	DeleteEntity(RCCar.Driver)
-    RCCar.UnloadModels()
-    Attached = false
+	RCCar.Clear()
 end)
 
-AddEventHandler('longboard:spawn', function()
+AddEventHandler('longboard:start', function()
+	RCCar.Clear()
     RCCar.Start()
 end)
 
@@ -31,7 +28,6 @@ RCCar.Start = function()
 
 		local distanceCheck = GetDistanceBetweenCoords(GetEntityCoords(PlayerPedId()),  GetEntityCoords(RCCar.Entity), true)
 
-		RCCar.DrawInstructions(distanceCheck)
 		RCCar.HandleKeys(distanceCheck)
 
 		if distanceCheck <= Config.LoseConnectionDistance then
@@ -43,6 +39,21 @@ RCCar.Start = function()
 		else
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
 		end
+
+		Citizen.CreateThread(function()
+			Citizen.Wait(50)
+			StopCurrentPlayingAmbientSpeech(RCCar.Driver)	
+			if Attached then
+				-- Ragdoll system
+				local x = GetEntityRotation(RCCar.Entity).x
+				local y = GetEntityRotation(RCCar.Entity).y
+				
+				if (-40.0 < x and x > 40.0) or (-40.0 < y and y > 40.0) then
+					RCCar.AttachPlayer(false)
+					SetPedToRagdoll(player, 5000, 4000, 0, true, true, false)
+				end	
+			end           
+		end)
 	end
 end
 
@@ -52,7 +63,7 @@ RCCar.HandleKeys = function(distanceCheck)
 			RCCar.Attach("pick")
 		end
 
-		if IsControlJustReleased(0, 47) then
+		if IsControlJustReleased(0, 113) then
 			if Attached then
 				RCCar.AttachPlayer(false)
 			else
@@ -62,181 +73,108 @@ RCCar.HandleKeys = function(distanceCheck)
 	end
 	
 	if distanceCheck < Config.LoseConnectionDistance then
-		if IsControlPressed(0, 172) and not IsControlPressed(0, 173) then
+		local overSpeed = (GetEntitySpeed(RCCar.Entity)*3.6) > Config.MaxSpeedKmh
+		
+		-- prevents ped from driving away
+		TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 1, 1)
+		
+		-- Input Control longboard 
+		if IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 9, 1)
 		end
 
 		if IsControlPressed(0, 22) and Attached then
-			local vel = GetEntityVelocity(RCCar.Entity)
-			if not IsEntityInAir(RCCar.Entity) then
-				SetEntityVelocity(RCCar.Entity, vel.x, vel.y, vel.z + 5.0)
-				Citizen.Wait(20)
+			-- Jump system
+			if not IsEntityInAir(RCCar.Entity) then	
+				local vel = GetEntityVelocity(RCCar.Entity)
+				TaskPlayAnim(PlayerPedId(), "move_crouch_proto", "idle_intro", 5.0, 8.0, -1, 0, 0, false, false, false)
+				local duration = 0
+				local boost = 0
+				while IsControlPressed(0, 22) do
+					Citizen.Wait(10)
+					duration = duration + 10.0
+				end
+				boost = Config.maxJumpHeigh * duration / 250.0
+				if boost > Config.maxJumpHeigh then boost = Config.maxJumpHeigh end
+				print(boost)
+				StopAnimTask(PlayerPedId(), "move_crouch_proto", "idle_intro", 1.0)
+				SetEntityVelocity(RCCar.Entity, vel.x, vel.y, vel.z + boost)
+				TaskPlayAnim(player, "move_strafe@stealth", "idle", 8.0, 2.0, -1, 1, 1.0, false, false, false)
 			end
-			
 		end
 		
-		if IsControlJustReleased(0, 172) or IsControlJustReleased(0, 173) then
+		if IsControlJustReleased(0, 172) or IsControlJustReleased(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
 		end
 
-		if IsControlPressed(0, 173) and not IsControlPressed(0, 172) then
+		if IsControlPressed(0, 173) and not IsControlPressed(0, 172) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 22, 1)
 		end
 
-		if IsControlPressed(0, 174) and IsControlPressed(0, 173) then
+		if IsControlPressed(0, 174) and IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 13, 1)
 		end
 
-		if IsControlPressed(0, 175) and IsControlPressed(0, 173) then
+		if IsControlPressed(0, 175) and IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 14, 1)
 		end
 
-		if IsControlPressed(0, 172) and IsControlPressed(0, 173) then
+		if IsControlPressed(0, 172) and IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 30, 100)
 		end
 
-		if IsControlPressed(0, 174) and IsControlPressed(0, 172) then
+		if IsControlPressed(0, 174) and IsControlPressed(0, 172) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 7, 1)
 		end
 
-		if IsControlPressed(0, 175) and IsControlPressed(0, 172) then
+		if IsControlPressed(0, 175) and IsControlPressed(0, 172) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 8, 1)
 		end
 
-		if IsControlPressed(0, 174) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) then
+		if IsControlPressed(0, 174) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 4, 1)
 		end
 
-		if IsControlPressed(0, 175) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) then
+		if IsControlPressed(0, 175) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 5, 1)
 		end
-
-		
 	end
 end
 
-
-RCCar.DrawInstructions = function(distanceCheck)
-	local steeringButtons = {
-		{
-			["label"] = "Right",
-			["button"] = "~INPUT_CELLPHONE_RIGHT~"
-		},
-		{
-			["label"] = "Foward",
-			["button"] = "~INPUT_CELLPHONE_UP~"
-		},
-		{
-			["label"] = "Back",
-			["button"] = "~INPUT_CELLPHONE_DOWN~"
-		},
-		{
-			["label"] = "Left",
-			["button"] = "~INPUT_CELLPHONE_LEFT~"
-		},
-		{
-			["label"] = "Jump",
-			["button"] = "~INPUT_JUMP~"
-		}
-	}
-
-	local pickupButton = {
-		["label"] = "Pick Up",
-		["button"] = "~INPUT_CONTEXT~"
-	}
-
-	local buttonsToDraw = {
-		{
-			["label"] = "Get in/Get off",
-			["button"] = "~INPUT_DETONATE~"
-		}
-	}
-
-	if distanceCheck <= Config.LoseConnectionDistance then
-		for buttonIndex = 1, #steeringButtons do
-			local steeringButton = steeringButtons[buttonIndex]
-
-			table.insert(buttonsToDraw, steeringButton)
-		end
-
-		if distanceCheck <= 1.5 then
-			table.insert(buttonsToDraw, pickupButton)
-			if not Attached then
-				DrawText3Ds(GetEntityCoords(RCCar.Entity).x, GetEntityCoords(RCCar.Entity).y, GetEntityCoords(RCCar.Entity).z + 0.5, "[E] Pick Up")
-			end
-		end
-	end
-
-
-    Citizen.CreateThread(function()
-    	Citizen.Wait(0)
-        local instructionScaleform = RequestScaleformMovie("instructional_buttons")
-
-        while not HasScaleformMovieLoaded(instructionScaleform) do
-            Wait(0)
-        end
-
-        PushScaleformMovieFunction(instructionScaleform, "CLEAR_ALL")
-        PushScaleformMovieFunction(instructionScaleform, "TOGGLE_MOUSE_BUTTONS")
-        PushScaleformMovieFunctionParameterBool(0)
-        PopScaleformMovieFunctionVoid()
-
-        for buttonIndex, buttonValues in ipairs(buttonsToDraw) do
-            PushScaleformMovieFunction(instructionScaleform, "SET_DATA_SLOT")
-            PushScaleformMovieFunctionParameterInt(buttonIndex - 1)
-
-            PushScaleformMovieMethodParameterButtonName(buttonValues["button"])
-            PushScaleformMovieFunctionParameterString(buttonValues["label"])
-            PopScaleformMovieFunctionVoid()
-        end
-
-        PushScaleformMovieFunction(instructionScaleform, "DRAW_INSTRUCTIONAL_BUTTONS")
-        PushScaleformMovieFunctionParameterInt(-1)
-        PopScaleformMovieFunctionVoid()
-        DrawScaleformMovieFullscreen(instructionScaleform, 255, 255, 255, 255)       
-        if Attached then
-	        local x = GetEntityRotation(RCCar.Entity).x
-	        local y = GetEntityRotation(RCCar.Entity).y
-
-	        if (-40.0 < x and x > 40.0) or (-40.0 < y and y > 40.0) or (HasEntityCollidedWithAnything(RCCar.Entity) and GetEntitySpeed(RCCar.Entity) > 2.6) then
-	        	RCCar.AttachPlayer(false)
-	        	SetPedToRagdoll(player, 4000, 4000, 0, true, true, false)
-			end	
-	    end           
-    end)
-end
 
 RCCar.Spawn = function()
-	RCCar.LoadModels({ GetHashKey("rcbandito"), 68070371, GetHashKey("p_defilied_ragdoll_01_s"), "pickup_object", "move_strafe@stealth"})
+	-- models to load
+	RCCar.LoadModels({ GetHashKey("rcbandito"), 68070371, GetHashKey("p_defilied_ragdoll_01_s"), "pickup_object", "move_strafe@stealth", "move_crouch_proto"})
 
 	local spawnCoords, spawnHeading = GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 2.0, GetEntityHeading(PlayerPedId())
 
 	RCCar.Entity = CreateVehicle(GetHashKey("rcbandito"), spawnCoords, spawnHeading, true)
 	RCCar.Skate = CreateObject(GetHashKey("p_defilied_ragdoll_01_s"), 0.0, 0.0, 0.0, true, true, true)
 	
+	-- load models
 	while not DoesEntityExist(RCCar.Entity) do
 		Citizen.Wait(5)
 	end
-
 	while not DoesEntityExist(RCCar.Skate) do
 		Citizen.Wait(5)
 	end
 
-	SetVehicleHandlingFloat( RCCar.Entity, "CHandlingData", "fSuspensionForce", 1.5)
-	SetVehicleEngineTorqueMultiplier(RCCar.Entity, 0.1)
-	SetEntityNoCollisionEntity(RCCar.Entity, player, false)
+	SetHandling() -- Modify hanfling for upgrade the stability
+	SetEntityNoCollisionEntity(RCCar.Entity, player, false) -- disable collision between the player and the rc
+	SetEntityCollision(RCCar.Entity, true, true)
 	SetEntityVisible(RCCar.Entity, false)
-	SetAllVehiclesSpawn(RCCar.Entity, true, true, true, true)
-	AttachEntityToEntity(RCCar.Skate, RCCar.Entity, GetPedBoneIndex(PlayerPedId(), 28422), 0.0, 0.0, -0.15, 0.0, 0.0, 90.0, true, true, true, true, 1, true)	
-	SetEntityCollision(RCCar.Skate, true, true)
+	--SetAllVehiclesSpawn(RCCar.Entity, true, true, true, true)
+	AttachEntityToEntity(RCCar.Skate, RCCar.Entity, GetPedBoneIndex(PlayerPedId(), 28422), 0.0, 0.0, -0.15, 0.0, 0.0, 90.0, false, true, true, true, 1, true)
 
-	RCCar.Driver = CreatePed(5, 68070371, spawnCoords, spawnHeading, true)
+	RCCar.Driver = CreatePed(12	, 68070371, spawnCoords, spawnHeading, true, true)
+
+	-- Driver properties
+	SetEnableHandcuffs(RCCar.Driver, true)
 	SetEntityInvincible(RCCar.Driver, true)
 	SetEntityVisible(RCCar.Driver, false)
 	FreezeEntityPosition(RCCar.Driver, true)
-	SetPedAlertness(RCCar.Driver, 0.0)
-
 	TaskWarpPedIntoVehicle(RCCar.Driver, RCCar.Entity, -1)
+	--SetPedAlertness(RCCar.Driver, 0)
 
 	while not IsPedInVehicle(RCCar.Driver, RCCar.Entity) do
 		Citizen.Wait(0)
@@ -245,13 +183,41 @@ RCCar.Spawn = function()
 	RCCar.Attach("place")
 end
 
+function SetHandling()
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSteeringLock", 9.0)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fDriveInertia", 0.05)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fMass", 1800.0)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fPercentSubmerged", 105.0)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fDriveBiasFront", 0.0)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fInitialDriveForce", 0.25)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fInitialDriveMaxFlatVel", 135.0)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionCurveMax", 2.2)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionCurveMin", 2.12)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionCurveLateral", 22.5)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionSpringDeltaMax", 0.1)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fLowSpeedTractionLossMult", 0.7)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fCamberStiffnesss", 0.0)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionBiasFront", 0.478)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionLossMult", 0.0)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionForce", 5.2)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionForce", 1.2)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionReboundDamp", 1.7)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionUpperLimit", 0.1	)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionLowerLimit", -0.3)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionRaise", 0.0)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionBiasFront", 0.5)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fAntiRollBarForce", 0.0)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fAntiRollBarBiasFront", 0.65)
+	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fBrakeForce", 0.53)
+end
+
 RCCar.Attach = function(param)
 	if not DoesEntityExist(RCCar.Entity) then
 		return
 	end
 	
-
 	if param == "place" then
+		-- Place longboard
 		AttachEntityToEntity(RCCar.Entity, PlayerPedId(), GetPedBoneIndex(PlayerPedId(),  28422), -0.1, 0.0, -0.2, 70.0, 0.0, 270.0, 1, 1, 0, 0, 2, 1)
 
 		TaskPlayAnim(PlayerPedId(), "pickup_object", "pickup_low", 8.0, -8.0, -1, 0, 0, false, false, false)
@@ -262,6 +228,7 @@ RCCar.Attach = function(param)
 
 		PlaceObjectOnGroundProperly(RCCar.Entity)
 	elseif param == "pick" then
+		-- Pick longboard
 		Citizen.Wait(100)
 
 		TaskPlayAnim(PlayerPedId(), "pickup_object", "pickup_low", 8.0, -8.0, -1, 0, 0, false, false, false)
@@ -269,18 +236,25 @@ RCCar.Attach = function(param)
 		Citizen.Wait(600)
 	
 		AttachEntityToEntity(RCCar.Entity, PlayerPedId(), GetPedBoneIndex(PlayerPedId(),  28422), -0.1, 0.0, -0.2, 70.0, 0.0, 270.0, 1, 1, 0, 0, 2, 1)
-
+		
 		Citizen.Wait(900)
-	
-		DetachEntity(RCCar.Entity)
+		
+		-- Clear 
+		RCCar.Clear()
 
-		DeleteEntity(RCCar.Skate)
-		DeleteVehicle(RCCar.Entity)
-		DeleteEntity(RCCar.Driver)
-
-		RCCar.UnloadModels()
 	end
 
+end
+
+RCCar.Clear = function(models)
+	DetachEntity(RCCar.Entity)
+	DeleteEntity(RCCar.Skate)
+	DeleteVehicle(RCCar.Entity)
+	DeleteEntity(RCCar.Driver)
+
+	RCCar.UnloadModels()
+	Attach = false
+	Attached  = false
 end
 
 
@@ -323,34 +297,12 @@ end
 RCCar.AttachPlayer = function(toggle)
 	if toggle then
 		TaskPlayAnim(player, "move_strafe@stealth", "idle", 8.0, 8.0, -1, 1, 1.0, false, false, false)
-		AttachEntityToEntity(player, RCCar.Entity , 20, 0.0, 0.0, 0.98, 0.0, 0.0, -15.0, true, true, true, true, true, true)
-		SetEntityCollision(player, true, false)
+		AttachEntityToEntity(player, RCCar.Entity, 20, 0.0, 0.0, 0.98, 0.0, 0.0, -15.0, true, true, false, true, 1, true)
+		SetEntityCollision(player, true, true)
 		Attached = true		
 	elseif not toggle then
 		DetachEntity(player, false, false)
 		Attached = false
 		StopAnimTask(player, "move_strafe@stealth", "idle", 1.0)	
 	end	
-end
-
-function DrawText3Ds(x,y,z, text)
-    local onScreen,_x,_y=World3dToScreen2d(x,y,z)
-    local px,py,pz=table.unpack(GetGameplayCamCoords())
-    
-    SetTextScale(0.35, 0.35)
-    SetTextFont(4)
-    SetTextProportional(1)
-    SetTextColour(255, 255, 255, 215)
-    SetTextEntry("STRING")
-    SetTextCentre(1)
-    AddTextComponentString(text)
-    DrawText(_x,_y)
-    local factor = (string.len(text)) / 370
-    DrawRect(_x,_y+0.0125, 0.015+ factor, 0.03, 41, 11, 41, 68)
-end
-
-function ShowSubtitle(text, ms)  
-    BeginTextCommandPrint("STRING") 
-    AddTextComponentSubstringPlayerName(text)
-    EndTextCommandPrint(ms, 1)
 end

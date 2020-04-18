@@ -4,5 +4,3 @@ client_scripts {
     "config.lua",
     "client/main.lua"
 }
-
---file 'stream/p_defilied_ragdoll_01_s.ydr'
