@@ -13,12 +13,14 @@ AddEventHandler('longboard:clear', function()
 end)
 
 AddEventHandler('longboard:start', function()
-	RCCar.Clear()
     RCCar.Start()
 end)
 
+AddEventHandler('baseevents:onPlayerDied', function()
+	RCCar.AttachPlayer(false)
+end)
+
 RCCar.Start = function()
-	player = GetPlayerPed(-1)
 	if DoesEntityExist(RCCar.Entity) then return end
 
 	RCCar.Spawn()
@@ -39,22 +41,18 @@ RCCar.Start = function()
 		else
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
 		end
-
-		Citizen.CreateThread(function()
-			Citizen.Wait(50)
-			StopCurrentPlayingAmbientSpeech(RCCar.Driver)	
-			if Attached then
-				-- Ragdoll system
-				local x = GetEntityRotation(RCCar.Entity).x
-				local y = GetEntityRotation(RCCar.Entity).y
-				
-				if (-40.0 < x and x > 40.0) or (-40.0 < y and y > 40.0) then
-					RCCar.AttachPlayer(false)
-					SetPedToRagdoll(player, 5000, 4000, 0, true, true, false)
-				end	
-			end           
-		end)
 	end
+end
+
+RCCar.MustRagdoll = function()
+	local x = GetEntityRotation(RCCar.Entity).x
+	local y = GetEntityRotation(RCCar.Entity).y
+	if ((-60.0 < x and x > 60.0)) and IsEntityInAir(RCCar.Entity) and RCCar.Speed < 5.0 then
+		return true
+	end	
+	if (HasEntityCollidedWithAnything(GetPlayerPed(-1)) and RCCar.Speed > 5.0) then return true end
+	if IsPedDeadOrDying(player, false) then return true end
+		return false
 end
 
 RCCar.HandleKeys = function(distanceCheck)
@@ -66,7 +64,8 @@ RCCar.HandleKeys = function(distanceCheck)
 		if IsControlJustReleased(0, 113) then
 			if Attached then
 				RCCar.AttachPlayer(false)
-			else
+			elseif not IsPedRagdoll(player) then
+				Citizen.Wait(200)
 				RCCar.AttachPlayer(true)
 			end
 		end
@@ -77,7 +76,25 @@ RCCar.HandleKeys = function(distanceCheck)
 		
 		-- prevents ped from driving away
 		TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 1, 1)
-		
+		ForceVehicleEngineAudio(RCCar.Entity, 0)
+
+		Citizen.CreateThread(function()
+			player = GetPlayerPed(-1)
+			Citizen.Wait(1)
+			SetEntityInvincible(RCCar.Entity, true)
+			StopCurrentPlayingAmbientSpeech(RCCar.Driver)	
+			if Attached then
+				-- Ragdoll system
+				RCCar.Speed = GetEntitySpeed(RCCar.Entity) * 3.6
+				
+				if RCCar.MustRagdoll() then
+					RCCar.AttachPlayer(false)
+					SetPedToRagdoll(player, 5000, 4000, 0, true, true, false)
+					Attached = false
+				end
+			end
+			
+		end)
 		-- Input Control longboard 
 		if IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 9, 1)
@@ -97,57 +114,60 @@ RCCar.HandleKeys = function(distanceCheck)
 				boost = Config.maxJumpHeigh * duration / 250.0
 				if boost > Config.maxJumpHeigh then boost = Config.maxJumpHeigh end
 				StopAnimTask(PlayerPedId(), "move_crouch_proto", "idle_intro", 1.0)
-				SetEntityVelocity(RCCar.Entity, vel.x, vel.y, vel.z + boost)
-				TaskPlayAnim(player, "move_strafe@stealth", "idle", 8.0, 2.0, -1, 1, 1.0, false, false, false)
+				if(Attached) then
+					SetEntityVelocity(RCCar.Entity, vel.x, vel.y, vel.z + boost)
+					TaskPlayAnim(player, "move_strafe@stealth", "idle", 8.0, 2.0, -1, 1, 1.0, false, false, false)
+				end
 			end
 		end
-		
-		if IsControlJustReleased(0, 172) or IsControlJustReleased(0, 173) and not overSpeed then
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
-		end
 
-		if IsControlPressed(0, 173) and not IsControlPressed(0, 172) and not overSpeed then
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 22, 1)
-		end
+			if IsControlJustReleased(0, 172) or IsControlJustReleased(0, 173) and not overSpeed then
+				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
+			end
 
-		if IsControlPressed(0, 174) and IsControlPressed(0, 173) and not overSpeed then
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 13, 1)
-		end
+			if IsControlPressed(0, 173) and not IsControlPressed(0, 172) and not overSpeed then
+				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 22, 1)
+			end
 
-		if IsControlPressed(0, 175) and IsControlPressed(0, 173) and not overSpeed then
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 14, 1)
-		end
+			if IsControlPressed(0, 174) and IsControlPressed(0, 173) and not overSpeed then
+				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 13, 1)
+			end
 
-		if IsControlPressed(0, 172) and IsControlPressed(0, 173) and not overSpeed then
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 30, 100)
-		end
+			if IsControlPressed(0, 175) and IsControlPressed(0, 173) and not overSpeed then
+				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 14, 1)
+			end
 
-		if IsControlPressed(0, 174) and IsControlPressed(0, 172) and not overSpeed then
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 7, 1)
-		end
+			if IsControlPressed(0, 172) and IsControlPressed(0, 173) and not overSpeed then
+				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 30, 100)
+			end
 
-		if IsControlPressed(0, 175) and IsControlPressed(0, 172) and not overSpeed then
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 8, 1)
-		end
+			if IsControlPressed(0, 174) and IsControlPressed(0, 172) and not overSpeed then
+				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 7, 1)
+			end
 
-		if IsControlPressed(0, 174) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 4, 1)
-		end
+			if IsControlPressed(0, 175) and IsControlPressed(0, 172) and not overSpeed then
+				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 8, 1)
+			end
 
-		if IsControlPressed(0, 175) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
-			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 5, 1)
-		end
+			if IsControlPressed(0, 174) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
+				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 4, 1)
+			end
+
+			if IsControlPressed(0, 175) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
+				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 5, 1)
+			end
+
 	end
 end
 
 
 RCCar.Spawn = function()
 	-- models to load
-	RCCar.LoadModels({ GetHashKey("rcbandito"), 68070371, GetHashKey("p_defilied_ragdoll_01_s"), "pickup_object", "move_strafe@stealth", "move_crouch_proto"})
+	RCCar.LoadModels({ GetHashKey("bmx"), 68070371, GetHashKey("p_defilied_ragdoll_01_s"), "pickup_object", "move_strafe@stealth", "move_crouch_proto"})
 
 	local spawnCoords, spawnHeading = GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 2.0, GetEntityHeading(PlayerPedId())
 
-	RCCar.Entity = CreateVehicle(GetHashKey("rcbandito"), spawnCoords, spawnHeading, true)
+	RCCar.Entity = CreateVehicle(GetHashKey("bmx"), spawnCoords, spawnHeading, true)
 	RCCar.Skate = CreateObject(GetHashKey("p_defilied_ragdoll_01_s"), 0.0, 0.0, 0.0, true, true, true)
 	
 	-- load models
@@ -158,12 +178,10 @@ RCCar.Spawn = function()
 		Citizen.Wait(5)
 	end
 
-	SetHandling() -- Modify hanfling for upgrade the stability
 	SetEntityNoCollisionEntity(RCCar.Entity, player, false) -- disable collision between the player and the rc
-	SetEntityCollision(RCCar.Entity, true, true)
+	SetEntityCollision(RCCar.Entity, false, true)
 	SetEntityVisible(RCCar.Entity, false)
-	--SetAllVehiclesSpawn(RCCar.Entity, true, true, true, true)
-	AttachEntityToEntity(RCCar.Skate, RCCar.Entity, GetPedBoneIndex(PlayerPedId(), 28422), 0.0, 0.0, -0.15, 0.0, 0.0, 90.0, false, true, true, true, 1, true)
+	AttachEntityToEntity(RCCar.Skate, RCCar.Entity, GetPedBoneIndex(PlayerPedId(), 28422), 0.0, 0.0, -0.40, 0.0, 0.0, 90.0, false, true, true, true, 1, true)
 
 	RCCar.Driver = CreatePed(12	, 68070371, spawnCoords, spawnHeading, true, true)
 
@@ -173,7 +191,6 @@ RCCar.Spawn = function()
 	SetEntityVisible(RCCar.Driver, false)
 	FreezeEntityPosition(RCCar.Driver, true)
 	TaskWarpPedIntoVehicle(RCCar.Driver, RCCar.Entity, -1)
-	--SetPedAlertness(RCCar.Driver, 0)
 
 	while not IsPedInVehicle(RCCar.Driver, RCCar.Entity) do
 		Citizen.Wait(0)
@@ -182,33 +199,6 @@ RCCar.Spawn = function()
 	RCCar.Attach("place")
 end
 
-function SetHandling()
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSteeringLock", 9.0)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fDriveInertia", 0.05)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fMass", 1800.0)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fPercentSubmerged", 105.0)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fDriveBiasFront", 0.0)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fInitialDriveForce", 0.25)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fInitialDriveMaxFlatVel", 135.0)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionCurveMax", 2.2)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionCurveMin", 2.12)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionCurveLateral", 22.5)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionSpringDeltaMax", 0.1)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fLowSpeedTractionLossMult", 0.7)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fCamberStiffnesss", 0.0)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionBiasFront", 0.478)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fTractionLossMult", 0.0)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionForce", 5.2)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionForce", 1.2)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionReboundDamp", 1.7)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionUpperLimit", 0.1	)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionLowerLimit", -0.3)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionRaise", 0.0)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fSuspensionBiasFront", 0.5)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fAntiRollBarForce", 0.0)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fAntiRollBarBiasFront", 0.65)
-	SetVehicleHandlingFloat(RCCar.Entity, "CHandlingData", "fBrakeForce", 0.53)
-end
 
 RCCar.Attach = function(param)
 	if not DoesEntityExist(RCCar.Entity) then
@@ -254,6 +244,7 @@ RCCar.Clear = function(models)
 	RCCar.UnloadModels()
 	Attach = false
 	Attached  = false
+	SetPedRagdollOnCollision(player, false)
 end
 
 
@@ -294,14 +285,38 @@ RCCar.UnloadModels = function()
 end
 
 RCCar.AttachPlayer = function(toggle)
+	
 	if toggle then
 		TaskPlayAnim(player, "move_strafe@stealth", "idle", 8.0, 8.0, -1, 1, 1.0, false, false, false)
-		AttachEntityToEntity(player, RCCar.Entity, 20, 0.0, 0.0, 0.98, 0.0, 0.0, -15.0, true, true, false, true, 1, true)
+		AttachEntityToEntity(player, RCCar.Entity, 20, 0.0, 0, 0.7, 0.0, 0.0, -15.0, true, true, false, true, 1, true)
 		SetEntityCollision(player, true, true)
-		Attached = true		
+		SetPedRagdollOnCollision(player, true)
+		TriggerServerEvent("shareImOnSkate")
 	elseif not toggle then
 		DetachEntity(player, false, false)
-		Attached = false
-		StopAnimTask(player, "move_strafe@stealth", "idle", 1.0)	
+		SetPedRagdollOnCollision(player, false)
+		--SetEntityCollision(RCCar.Entity, false, true)
+		StopAnimTask(player, "move_strafe@stealth", "idle", 1.0)
+		StopAnimTask(PlayerPedId(), "move_crouch_proto", "idle_intro", 1.0)
+		TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 3, 1)	
 	end	
+	Attached = toggle
 end
+
+RegisterNetEvent("shareHeIsOnSkate")
+AddEventHandler("shareHeIsOnSkate", function(id) 
+		print("MutingEngine!")
+		local player = GetPlayerFromServerId(id)
+		local vehicle = GetEntityAttachedTo(GetPlayerPed(player))
+		if not vehiclesMuted[vehicle] then
+			Citizen.CreateThread(function() 
+				vehiclesMuted[vehicle] = true
+				while vehicle do
+					Citizen.Wait(10)
+					--print("A callar!: "..vehicleS)
+					ForceVehicleEngineAudio(vehicle, 0)
+				end
+				table.remove(vehiclesMuted, vehicle)
+			end)
+		end	
+end)
