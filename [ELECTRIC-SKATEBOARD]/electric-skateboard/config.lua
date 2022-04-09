@@ -1,5 +1,5 @@
-Config = {
-    MaxSpeedKmh = 35,
-    maxJumpHeigh = 5.0,
-    LoseConnectionDistance = 100.0
-}
+Config = {}
+
+Config.MaxSpeedKmh = 35
+Config.MaxJumpHeigh = 5.0
+Config.LoseConnectionDistance = 100.0

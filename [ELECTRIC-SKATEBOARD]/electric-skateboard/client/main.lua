@@ -3,11 +3,6 @@ local player = nil
 
 Attached = false
 
-RegisterCommand("longboard", function()
-	RCCar.Start()
-end)
-
-
 AddEventHandler('longboard:clear', function()
 	RCCar.Clear()
 end)
@@ -26,7 +21,7 @@ RCCar.Start = function()
 	RCCar.Spawn()
 
 	while DoesEntityExist(RCCar.Entity) and DoesEntityExist(RCCar.Driver) do
-		Citizen.Wait(5)
+		Wait(5)
 
 		local distanceCheck = GetDistanceBetweenCoords(GetEntityCoords(PlayerPedId()),  GetEntityCoords(RCCar.Entity), true)
 
@@ -49,7 +44,7 @@ RCCar.MustRagdoll = function()
 	local y = GetEntityRotation(RCCar.Entity).y
 	if ((-60.0 < x and x > 60.0)) and IsEntityInAir(RCCar.Entity) and RCCar.Speed < 5.0 then
 		return true
-	end	
+	end
 	if (HasEntityCollidedWithAnything(GetPlayerPed(-1)) and RCCar.Speed > 5.0) then return true end
 	if IsPedDeadOrDying(player, false) then return true end
 		return false
@@ -65,38 +60,38 @@ RCCar.HandleKeys = function(distanceCheck)
 			if Attached then
 				RCCar.AttachPlayer(false)
 			elseif not IsPedRagdoll(player) then
-				Citizen.Wait(200)
+				Wait(200)
 				RCCar.AttachPlayer(true)
 			end
 		end
 	end
-	
+
 	if distanceCheck < Config.LoseConnectionDistance then
 		local overSpeed = (GetEntitySpeed(RCCar.Entity)*3.6) > Config.MaxSpeedKmh
-		
+
 		-- prevents ped from driving away
 		TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 1, 1)
 		ForceVehicleEngineAudio(RCCar.Entity, 0)
 
-		Citizen.CreateThread(function()
+		CreateThread(function()
 			player = GetPlayerPed(-1)
-			Citizen.Wait(1)
+			Wait(1)
 			SetEntityInvincible(RCCar.Entity, true)
 			StopCurrentPlayingAmbientSpeech(RCCar.Driver)	
 			if Attached then
 				-- Ragdoll system
 				RCCar.Speed = GetEntitySpeed(RCCar.Entity) * 3.6
-				
+
 				if RCCar.MustRagdoll() then
 					RCCar.AttachPlayer(false)
 					SetPedToRagdoll(player, 5000, 4000, 0, true, true, false)
 					Attached = false
 				end
 			end
-			
+
 		end)
-		-- Input Control longboard 
-		if IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
+		-- Input Control longboard
+		if IsControlPressed(0,32) and not IsControlPressed(0,33) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 9, 1)
 		end
 
@@ -108,11 +103,11 @@ RCCar.HandleKeys = function(distanceCheck)
 				local duration = 0
 				local boost = 0
 				while IsControlPressed(0, 22) do
-					Citizen.Wait(10)
+					Wait(10)
 					duration = duration + 10.0
 				end
-				boost = Config.maxJumpHeigh * duration / 250.0
-				if boost > Config.maxJumpHeigh then boost = Config.maxJumpHeigh end
+				boost = Config.MaxJumpHeigh * duration / 250.0
+				if boost > Config.MaxJumpHeigh then boost = Config.MaxJumpHeigh end
 				StopAnimTask(PlayerPedId(), "move_crouch_proto", "idle_intro", 1.0)
 				if(Attached) then
 					SetEntityVelocity(RCCar.Entity, vel.x, vel.y, vel.z + boost)
@@ -121,39 +116,39 @@ RCCar.HandleKeys = function(distanceCheck)
 			end
 		end
 
-			if IsControlJustReleased(0, 172) or IsControlJustReleased(0, 173) and not overSpeed then
+			if IsControlJustReleased(0, 32) or IsControlJustReleased(0, 33) and not overSpeed then
 				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
 			end
 
-			if IsControlPressed(0, 173) and not IsControlPressed(0, 172) and not overSpeed then
+			if IsControlPressed(0, 33) and not IsControlPressed(0, 32) and not overSpeed then
 				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 22, 1)
 			end
 
-			if IsControlPressed(0, 174) and IsControlPressed(0, 173) and not overSpeed then
+			if IsControlPressed(0, 174) and IsControlPressed(0, 33) and not overSpeed then
 				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 13, 1)
 			end
 
-			if IsControlPressed(0, 175) and IsControlPressed(0, 173) and not overSpeed then
+			if IsControlPressed(0, 35) and IsControlPressed(0, 33) and not overSpeed then
 				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 14, 1)
 			end
 
-			if IsControlPressed(0, 172) and IsControlPressed(0, 173) and not overSpeed then
+			if IsControlPressed(0, 32) and IsControlPressed(0, 33) and not overSpeed then
 				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 30, 100)
 			end
 
-			if IsControlPressed(0, 174) and IsControlPressed(0, 172) and not overSpeed then
+			if IsControlPressed(0, 174) and IsControlPressed(0, 32) and not overSpeed then
 				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 7, 1)
 			end
 
-			if IsControlPressed(0, 175) and IsControlPressed(0, 172) and not overSpeed then
+			if IsControlPressed(0, 35) and IsControlPressed(0, 32) and not overSpeed then
 				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 8, 1)
 			end
 
-			if IsControlPressed(0, 174) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
+			if IsControlPressed(0, 174) and not IsControlPressed(0, 32) and not IsControlPressed(0, 33) and not overSpeed then
 				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 4, 1)
 			end
 
-			if IsControlPressed(0, 175) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
+			if IsControlPressed(0, 35) and not IsControlPressed(0, 32) and not IsControlPressed(0, 33) and not overSpeed then
 				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 5, 1)
 			end
 
@@ -169,13 +164,13 @@ RCCar.Spawn = function()
 
 	RCCar.Entity = CreateVehicle(GetHashKey("bmx"), spawnCoords, spawnHeading, true)
 	RCCar.Skate = CreateObject(GetHashKey("p_defilied_ragdoll_01_s"), 0.0, 0.0, 0.0, true, true, true)
-	
+
 	-- load models
 	while not DoesEntityExist(RCCar.Entity) do
-		Citizen.Wait(5)
+		Wait(5)
 	end
 	while not DoesEntityExist(RCCar.Skate) do
-		Citizen.Wait(5)
+		Wait(5)
 	end
 
 	SetEntityNoCollisionEntity(RCCar.Entity, player, false) -- disable collision between the player and the rc
@@ -193,7 +188,7 @@ RCCar.Spawn = function()
 	TaskWarpPedIntoVehicle(RCCar.Driver, RCCar.Entity, -1)
 
 	while not IsPedInVehicle(RCCar.Driver, RCCar.Entity) do
-		Citizen.Wait(0)
+		Wait(0)
 	end
 
 	RCCar.Attach("place")
@@ -211,23 +206,23 @@ RCCar.Attach = function(param)
 
 		TaskPlayAnim(PlayerPedId(), "pickup_object", "pickup_low", 8.0, -8.0, -1, 0, 0, false, false, false)
 
-		Citizen.Wait(800)
+		Wait(800)
 
 		DetachEntity(RCCar.Entity, false, true)
 
 		PlaceObjectOnGroundProperly(RCCar.Entity)
 	elseif param == "pick" then
 		-- Pick longboard
-		Citizen.Wait(100)
+		Wait(100)
 
 		TaskPlayAnim(PlayerPedId(), "pickup_object", "pickup_low", 8.0, -8.0, -1, 0, 0, false, false, false)
 
-		Citizen.Wait(600)
-	
+		Wait(600)
+
 		AttachEntityToEntity(RCCar.Entity, PlayerPedId(), GetPedBoneIndex(PlayerPedId(),  28422), -0.1, 0.0, -0.2, 70.0, 0.0, 270.0, 1, 1, 0, 0, 2, 1)
-		
-		Citizen.Wait(900)
-		
+
+		Wait(900)
+
 		-- Clear 
 		RCCar.Clear()
 
@@ -261,13 +256,13 @@ RCCar.LoadModels = function(models)
 		if IsModelValid(model) then
 			while not HasModelLoaded(model) do
 				RequestModel(model)	
-				Citizen.Wait(10)
+				Wait(10)
 			end
 		else
 			while not HasAnimDictLoaded(model) do
 				RequestAnimDict(model)
-				Citizen.Wait(10)
-			end    
+				Wait(10)
+			end 
 		end
 	end
 end
@@ -285,13 +280,11 @@ RCCar.UnloadModels = function()
 end
 
 RCCar.AttachPlayer = function(toggle)
-	
 	if toggle then
 		TaskPlayAnim(player, "move_strafe@stealth", "idle", 8.0, 8.0, -1, 1, 1.0, false, false, false)
 		AttachEntityToEntity(player, RCCar.Entity, 20, 0.0, 0, 0.7, 0.0, 0.0, -15.0, true, true, false, true, 1, true)
 		SetEntityCollision(player, true, true)
 		SetPedRagdollOnCollision(player, true)
-		TriggerServerEvent("shareImOnSkate")
 	elseif not toggle then
 		DetachEntity(player, false, false)
 		SetPedRagdollOnCollision(player, false)
@@ -299,24 +292,22 @@ RCCar.AttachPlayer = function(toggle)
 		StopAnimTask(player, "move_strafe@stealth", "idle", 1.0)
 		StopAnimTask(PlayerPedId(), "move_crouch_proto", "idle_intro", 1.0)
 		TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 3, 1)	
-	end	
+	end
 	Attached = toggle
 end
 
 RegisterNetEvent("shareHeIsOnSkate")
 AddEventHandler("shareHeIsOnSkate", function(id) 
-		print("MutingEngine!")
-		local player = GetPlayerFromServerId(id)
-		local vehicle = GetEntityAttachedTo(GetPlayerPed(player))
-		if not vehiclesMuted[vehicle] then
-			Citizen.CreateThread(function() 
-				vehiclesMuted[vehicle] = true
-				while vehicle do
-					Citizen.Wait(10)
-					--print("A callar!: "..vehicleS)
-					ForceVehicleEngineAudio(vehicle, 0)
-				end
-				table.remove(vehiclesMuted, vehicle)
-			end)
-		end	
+	local player = GetPlayerFromServerId(id)
+	local vehicle = GetEntityAttachedTo(GetPlayerPed(player))
+	if not vehiclesMuted[vehicle] then
+		CreateThread(function() 
+			vehiclesMuted[vehicle] = true
+			while vehicle do
+				Wait(10)
+				ForceVehicleEngineAudio(vehicle, 0)
+			end
+			table.remove(vehiclesMuted, vehicle)
+		end)
+	end
 end)
