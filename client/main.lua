@@ -7,6 +7,7 @@ AddEventHandler('longboard:clear', function()
 	RCCar.Clear()
 end)
 
+RegisterNetEvent('longboard:start')
 AddEventHandler('longboard:start', function()
     RCCar.Start()
 end)
@@ -53,7 +54,7 @@ end
 RCCar.HandleKeys = function(distanceCheck)
 	if distanceCheck <= 1.5 then
 		if IsControlJustPressed(0, 38) then
-			RCCar.Attach("pick")
+			RCCar.Attach('pick')
 		end
 
 		if IsControlJustReleased(0, 113) then
@@ -99,7 +100,7 @@ RCCar.HandleKeys = function(distanceCheck)
 			-- Jump system
 			if not IsEntityInAir(RCCar.Entity) then	
 				local vel = GetEntityVelocity(RCCar.Entity)
-				TaskPlayAnim(PlayerPedId(), "move_crouch_proto", "idle_intro", 5.0, 8.0, -1, 0, 0, false, false, false)
+				TaskPlayAnim(PlayerPedId(), 'move_crouch_proto', 'idle_intro', 5.0, 8.0, -1, 0, 0, false, false, false)
 				local duration = 0
 				local boost = 0
 				while IsControlPressed(0, 22) do
@@ -108,49 +109,49 @@ RCCar.HandleKeys = function(distanceCheck)
 				end
 				boost = Config.MaxJumpHeigh * duration / 250.0
 				if boost > Config.MaxJumpHeigh then boost = Config.MaxJumpHeigh end
-				StopAnimTask(PlayerPedId(), "move_crouch_proto", "idle_intro", 1.0)
+				StopAnimTask(PlayerPedId(), 'move_crouch_proto', 'idle_intro', 1.0)
 				if(Attached) then
 					SetEntityVelocity(RCCar.Entity, vel.x, vel.y, vel.z + boost)
-					TaskPlayAnim(player, "move_strafe@stealth", "idle", 8.0, 2.0, -1, 1, 1.0, false, false, false)
+					TaskPlayAnim(player, 'move_strafe@stealth', 'idle', 8.0, 2.0, -1, 1, 1.0, false, false, false)
 				end
 			end
 		end
 
-			if IsControlJustReleased(0, 32) or IsControlJustReleased(0, 33) and not overSpeed then
-				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
-			end
+		if IsControlJustReleased(0, 32) or IsControlJustReleased(0, 33) and not overSpeed then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
+		end
 
-			if IsControlPressed(0, 33) and not IsControlPressed(0, 32) and not overSpeed then
-				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 22, 1)
-			end
+		if IsControlPressed(0, 33) and not IsControlPressed(0, 32) and not overSpeed then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 22, 1)
+		end
 
-			if IsControlPressed(0, 174) and IsControlPressed(0, 33) and not overSpeed then
-				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 13, 1)
-			end
+		if IsControlPressed(0, 174) and IsControlPressed(0, 33) and not overSpeed then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 13, 1)
+		end
 
-			if IsControlPressed(0, 35) and IsControlPressed(0, 33) and not overSpeed then
-				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 14, 1)
-			end
+		if IsControlPressed(0, 35) and IsControlPressed(0, 33) and not overSpeed then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 14, 1)
+		end
 
-			if IsControlPressed(0, 32) and IsControlPressed(0, 33) and not overSpeed then
-				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 30, 100)
-			end
+		if IsControlPressed(0, 32) and IsControlPressed(0, 33) and not overSpeed then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 30, 100)
+		end
 
-			if IsControlPressed(0, 174) and IsControlPressed(0, 32) and not overSpeed then
-				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 7, 1)
-			end
+		if IsControlPressed(0, 174) and IsControlPressed(0, 32) and not overSpeed then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 7, 1)
+		end
 
-			if IsControlPressed(0, 35) and IsControlPressed(0, 32) and not overSpeed then
-				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 8, 1)
-			end
+		if IsControlPressed(0, 35) and IsControlPressed(0, 32) and not overSpeed then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 8, 1)
+		end
 
-			if IsControlPressed(0, 174) and not IsControlPressed(0, 32) and not IsControlPressed(0, 33) and not overSpeed then
-				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 4, 1)
-			end
+		if IsControlPressed(0, 174) and not IsControlPressed(0, 32) and not IsControlPressed(0, 33) and not overSpeed then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 4, 1)
+		end
 
-			if IsControlPressed(0, 35) and not IsControlPressed(0, 32) and not IsControlPressed(0, 33) and not overSpeed then
-				TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 5, 1)
-			end
+		if IsControlPressed(0, 35) and not IsControlPressed(0, 32) and not IsControlPressed(0, 33) and not overSpeed then
+			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 5, 1)
+		end
 
 	end
 end
@@ -158,12 +159,12 @@ end
 
 RCCar.Spawn = function()
 	-- models to load
-	RCCar.LoadModels({ GetHashKey("bmx"), 68070371, GetHashKey("p_defilied_ragdoll_01_s"), "pickup_object", "move_strafe@stealth", "move_crouch_proto"})
+	RCCar.LoadModels({ GetHashKey('bmx'), 68070371, GetHashKey('p_defilied_ragdoll_01_s'), 'pickup_object', 'move_strafe@stealth', 'move_crouch_proto'})
 
 	local spawnCoords, spawnHeading = GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 2.0, GetEntityHeading(PlayerPedId())
 
-	RCCar.Entity = CreateVehicle(GetHashKey("bmx"), spawnCoords, spawnHeading, true)
-	RCCar.Skate = CreateObject(GetHashKey("p_defilied_ragdoll_01_s"), 0.0, 0.0, 0.0, true, true, true)
+	RCCar.Entity = CreateVehicle(GetHashKey('bmx'), spawnCoords, spawnHeading, true)
+	RCCar.Skate = CreateObject(GetHashKey('p_defilied_ragdoll_01_s'), 0.0, 0.0, 0.0, true, true, true)
 
 	-- load models
 	while not DoesEntityExist(RCCar.Entity) do
@@ -191,7 +192,7 @@ RCCar.Spawn = function()
 		Wait(0)
 	end
 
-	RCCar.Attach("place")
+	RCCar.Attach('place')
 end
 
 
@@ -200,22 +201,22 @@ RCCar.Attach = function(param)
 		return
 	end
 	
-	if param == "place" then
+	if param == 'place' then
 		-- Place longboard
 		AttachEntityToEntity(RCCar.Entity, PlayerPedId(), GetPedBoneIndex(PlayerPedId(),  28422), -0.1, 0.0, -0.2, 70.0, 0.0, 270.0, 1, 1, 0, 0, 2, 1)
 
-		TaskPlayAnim(PlayerPedId(), "pickup_object", "pickup_low", 8.0, -8.0, -1, 0, 0, false, false, false)
+		TaskPlayAnim(PlayerPedId(), 'pickup_object', 'pickup_low', 8.0, -8.0, -1, 0, 0, false, false, false)
 
 		Wait(800)
 
 		DetachEntity(RCCar.Entity, false, true)
 
 		PlaceObjectOnGroundProperly(RCCar.Entity)
-	elseif param == "pick" then
+	elseif param == 'pick' then
 		-- Pick longboard
 		Wait(100)
 
-		TaskPlayAnim(PlayerPedId(), "pickup_object", "pickup_low", 8.0, -8.0, -1, 0, 0, false, false, false)
+		TaskPlayAnim(PlayerPedId(), 'pickup_object', 'pickup_low', 8.0, -8.0, -1, 0, 0, false, false, false)
 
 		Wait(600)
 
@@ -281,7 +282,7 @@ end
 
 RCCar.AttachPlayer = function(toggle)
 	if toggle then
-		TaskPlayAnim(player, "move_strafe@stealth", "idle", 8.0, 8.0, -1, 1, 1.0, false, false, false)
+		TaskPlayAnim(player, 'move_strafe@stealth', 'idle', 8.0, 8.0, -1, 1, 1.0, false, false, false)
 		AttachEntityToEntity(player, RCCar.Entity, 20, 0.0, 0, 0.7, 0.0, 0.0, -15.0, true, true, false, true, 1, true)
 		SetEntityCollision(player, true, true)
 		SetPedRagdollOnCollision(player, true)
@@ -289,15 +290,15 @@ RCCar.AttachPlayer = function(toggle)
 		DetachEntity(player, false, false)
 		SetPedRagdollOnCollision(player, false)
 		--SetEntityCollision(RCCar.Entity, false, true)
-		StopAnimTask(player, "move_strafe@stealth", "idle", 1.0)
-		StopAnimTask(PlayerPedId(), "move_crouch_proto", "idle_intro", 1.0)
+		StopAnimTask(player, 'move_strafe@stealth', 'idle', 1.0)
+		StopAnimTask(PlayerPedId(), 'move_crouch_proto', 'idle_intro', 1.0)
 		TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 3, 1)	
 	end
 	Attached = toggle
 end
 
-RegisterNetEvent("shareHeIsOnSkate")
-AddEventHandler("shareHeIsOnSkate", function(id) 
+RegisterNetEvent('shareHeIsOnSkate')
+AddEventHandler('shareHeIsOnSkate', function(id) 
 	local player = GetPlayerFromServerId(id)
 	local vehicle = GetEntityAttachedTo(GetPlayerPed(player))
 	if not vehiclesMuted[vehicle] then
