@@ -7,3 +7,9 @@ QBCore.Functions.CreateUseableItem('skate', function(source, item)
         TriggerClientEvent('longboard:start', src)
     end
 end)
+
+RegisterServerEvent('shareImOnSkate')
+AddEventHandler('shareImOnSkate', function(source) 
+    local src = source
+    TriggerClientEvent('shareHeIsOnSkate', -1, src)
+end)

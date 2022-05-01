@@ -286,6 +286,7 @@ RCCar.AttachPlayer = function(toggle)
 		AttachEntityToEntity(player, RCCar.Entity, 20, 0.0, 0, 0.7, 0.0, 0.0, -15.0, true, true, false, true, 1, true)
 		SetEntityCollision(player, true, true)
 		SetPedRagdollOnCollision(player, true)
+		TriggerServerEvent("shareImOnSkate")
 	elseif not toggle then
 		DetachEntity(player, false, false)
 		SetPedRagdollOnCollision(player, false)
