@@ -18,4 +18,7 @@ How to use:
 This script use a base of the script  rdrp_rccars by qalle:
 https://forum.fivem.net/t/release-rc-car-script/525015
 
+A QBCore version of this script exist:
+https://github.com/ikovaa/ElectricSkateboardFiveM/tree/qbcore
+
 Thank you
