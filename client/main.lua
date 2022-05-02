@@ -92,7 +92,7 @@ RCCar.HandleKeys = function(distanceCheck)
 
 		end)
 		-- Input Control longboard
-		if IsControlPressed(0,32) and not IsControlPressed(0,33) and not overSpeed then
+		if IsControlPressed(0,172) and not IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 9, 1)
 		end
 
@@ -117,39 +117,39 @@ RCCar.HandleKeys = function(distanceCheck)
 			end
 		end
 
-		if IsControlJustReleased(0, 32) or IsControlJustReleased(0, 33) and not overSpeed then
+		if IsControlJustReleased(0, 172) or IsControlJustReleased(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 6, 2500)
 		end
 
-		if IsControlPressed(0, 33) and not IsControlPressed(0, 32) and not overSpeed then
+		if IsControlPressed(0, 173) and not IsControlPressed(0, 172) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 22, 1)
 		end
 
-		if IsControlPressed(0, 174) and IsControlPressed(0, 33) and not overSpeed then
+		if IsControlPressed(0, 174) and IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 13, 1)
 		end
 
-		if IsControlPressed(0, 35) and IsControlPressed(0, 33) and not overSpeed then
+		if IsControlPressed(0, 175) and IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 14, 1)
 		end
 
-		if IsControlPressed(0, 32) and IsControlPressed(0, 33) and not overSpeed then
+		if IsControlPressed(0, 172) and IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 30, 100)
 		end
 
-		if IsControlPressed(0, 174) and IsControlPressed(0, 32) and not overSpeed then
+		if IsControlPressed(0, 174) and IsControlPressed(0, 172) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 7, 1)
 		end
 
-		if IsControlPressed(0, 35) and IsControlPressed(0, 32) and not overSpeed then
+		if IsControlPressed(0, 175) and IsControlPressed(0, 172) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 8, 1)
 		end
 
-		if IsControlPressed(0, 174) and not IsControlPressed(0, 32) and not IsControlPressed(0, 33) and not overSpeed then
+		if IsControlPressed(0, 174) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 4, 1)
 		end
 
-		if IsControlPressed(0, 35) and not IsControlPressed(0, 32) and not IsControlPressed(0, 33) and not overSpeed then
+		if IsControlPressed(0, 175) and not IsControlPressed(0, 172) and not IsControlPressed(0, 173) and not overSpeed then
 			TaskVehicleTempAction(RCCar.Driver, RCCar.Entity, 5, 1)
 		end
 
@@ -200,7 +200,7 @@ RCCar.Attach = function(param)
 	if not DoesEntityExist(RCCar.Entity) then
 		return
 	end
-	
+
 	if param == 'place' then
 		-- Place longboard
 		AttachEntityToEntity(RCCar.Entity, PlayerPedId(), GetPedBoneIndex(PlayerPedId(),  28422), -0.1, 0.0, -0.2, 70.0, 0.0, 270.0, 1, 1, 0, 0, 2, 1)
@@ -252,7 +252,7 @@ RCCar.LoadModels = function(models)
 			RCCar.CachedModels = {}
 		end
 
-		table.insert(RCCar.CachedModels, model)
+		RCCar.CachedModels[#RCCar.CachedModels + 1] = {model}
 
 		if IsModelValid(model) then
 			while not HasModelLoaded(model) do
@@ -263,7 +263,7 @@ RCCar.LoadModels = function(models)
 			while not HasAnimDictLoaded(model) do
 				RequestAnimDict(model)
 				Wait(10)
-			end 
+			end
 		end
 	end
 end
@@ -275,7 +275,7 @@ RCCar.UnloadModels = function()
 		if IsModelValid(model) then
 			SetModelAsNoLongerNeeded(model)
 		else
-			RemoveAnimDict(model)   
+			RemoveAnimDict(model)
 		end
 	end
 end
@@ -299,7 +299,7 @@ RCCar.AttachPlayer = function(toggle)
 end
 
 RegisterNetEvent('shareHeIsOnSkate')
-AddEventHandler('shareHeIsOnSkate', function(id) 
+AddEventHandler('shareHeIsOnSkate', function(id)
 	local player = GetPlayerFromServerId(id)
 	local vehicle = GetEntityAttachedTo(GetPlayerPed(player))
 	if not vehiclesMuted[vehicle] then
